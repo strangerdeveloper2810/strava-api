@@ -102,7 +102,7 @@ function submitForm(event) {
     console.log('Dữ liệu từ form:', formValues);
 
     // Reset form sau khi log dữ liệu (nếu cần)
-    event.target.reset();
+    // event.target.reset();
 }
 
 // Kiểm tra nếu có mã code trong URL (được trả về sau khi người dùng ủy quyền thành công)
