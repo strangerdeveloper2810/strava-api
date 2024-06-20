@@ -92,19 +92,20 @@ if (code) {
     // Gửi yêu cầu lấy access token từ Strava và xử lý kết quả
     fetchAccessToken(code)
         .then(response => {
-            // Lấy access token từ response
+            // Lấy các giá trị cần lưu từ response
             const accessToken = response.data.access_token;
-            console.log('Access Token:', accessToken);
+            const athleteId = response.data.athlete.id;
 
-            // Lưu access token vào localStorage
+            // Lưu access token và thông tin người dùng vào localStorage hoặc state của ứng dụng
             localStorage.setItem('stravaAccessToken', accessToken);
+            localStorage.setItem('athleteId', athleteId);
 
-            // Hiển thị thông báo authorize thành công (ví dụ: dùng một div có id "statusMessage" để hiển thị)
-            document.getElementById('statusMessage').textContent = 'Authorize thành công!';
-            document.getElementById('statusMessage').style.color = 'green';
-            document.getElementById('statusMessage').style.display = 'block';
-
-            // Sau khi lấy được access token, bạn có thể thực hiện các thao tác khác như gọi API Strava để lấy thông tin người dùng, hoạt động, vv.
+            // Hiển thị thông báo authorize thành công
+            const statusMessage = document.createElement('div');
+            statusMessage.id = 'statusMessage';
+            statusMessage.textContent = 'Authorize thành công!';
+            statusMessage.style.display = 'block';
+            document.body.appendChild(statusMessage);
         })
         .catch(error => {
             console.error('Error fetching access token:', error.response.data);
