@@ -123,17 +123,16 @@ function submitForm(event) {
     const dob = formData.get('dob');
     const accessToken = localStorage.getItem('stravaAccessToken');
     const athleteId = localStorage.getItem('athleteId');
-    const stravaProfileUrl = localStorage.getItem('stravaProfileUrl');
 
     const data = {
         "data": [
             {
-                "athleteId": athleteId,
-                "fullName": fullName,
-                "gender": gender,
-                "dob": dob,
-                "accessToken": accessToken,
-                "stravaProfileUrl": stravaProfileUrl
+                "Mã Người Tham gia": athleteId,
+                "Họ và Tên": fullName,
+                "Giới tính": gender,
+                "Ngày tháng năm sinh": dob,
+                "Access Token": accessToken,
+                "Timestamp": new Date().toISOString()
             }
         ]
     }
