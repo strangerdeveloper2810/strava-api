@@ -137,9 +137,17 @@ function submitForm(event) {
     };
 
     // Gửi dữ liệu lên Google Sheets qua SheetDB
-    axios.post(sheetDbUrl, data)
-        .then(response => {
-            console.log('Dữ liệu đã được gửi thành công:', response.data);
+    fetch(sheetDbUrl, {
+        method: 'POST',
+        headers: {
+            'Accept': 'application/json',
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(data)
+    })
+        .then(response => response.json())
+        .then(data => {
+            console.log('Dữ liệu đã được gửi thành công:', data);
             alert('Đăng ký thành công!');
         })
         .catch(error => {
