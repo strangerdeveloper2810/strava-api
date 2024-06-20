@@ -124,11 +124,15 @@ function submitForm(event) {
     const athleteId = localStorage.getItem('athleteId');
 
     const data = {
-        fullName: fullName,
-        gender: gender,
-        dob: dob,
-        athleteId: athleteId,
-        accessToken: accessToken
+        data: [
+            {
+                fullName: fullName,
+                gender: gender,
+                dob: dob,
+                athleteId: athleteId,
+                accessToken: accessToken
+            }
+        ]
     };
 
     // Gửi dữ liệu lên Google Sheets qua SheetDB
