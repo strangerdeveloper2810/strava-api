@@ -123,6 +123,7 @@ function submitForm(event) {
     const dob = formData.get('dob');
     const accessToken = localStorage.getItem('stravaAccessToken');
     const athleteId = localStorage.getItem('athleteId');
+    const timestamp = new Date().toLocaleString('vi-VN', { timeZone: 'Asia/Ho_Chi_Minh' });
 
     const data = {
         "data": [
@@ -132,7 +133,7 @@ function submitForm(event) {
                 "Giới tính": gender,
                 "Ngày tháng năm sinh": dob,
                 "Access Token": accessToken,
-                "Timestamp": new Date().toISOString()
+                "Timestamp": timestamp
             }
         ]
     }
