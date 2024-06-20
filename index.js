@@ -58,7 +58,7 @@
 const clientId = '127128';
 const clientSecret = 'b6097f741c5e7156764b8350179145222fa1cfa4';
 const scope = 'read,activity:read_all';
-const redirectUri = 'strava-api-dun.vercel.app';
+const redirectUri = 'https://strava-api-dun.vercel.app/';
 
 // Hàm để gửi yêu cầu lấy access token từ Strava
 function fetchAccessToken(code) {
