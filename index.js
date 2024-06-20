@@ -59,6 +59,7 @@ const clientId = '127128';
 const clientSecret = 'b6097f741c5e7156764b8350179145222fa1cfa4';
 const scope = 'read,activity:read_all';
 const redirectUri = 'https://strava-api-dun.vercel.app/';
+const sheetDbUrl = 'https://sheetdb.io/api/v1/6q0812gcbeszf'
 
 // Hàm để gửi yêu cầu lấy access token từ Strava
 function fetchAccessToken(code) {
@@ -83,27 +84,6 @@ document.getElementById('authorizeBtn').addEventListener('click', () => {
     // Redirect người dùng đến trang authorize của Strava
     window.location.href = stravaAuthorizeUrl;
 });
-
-// Hàm xử lý submit form để chỉ console.log các giá trị nhập vào form
-function submitForm(event) {
-    event.preventDefault(); // Ngăn chặn form reload trang
-
-    // Lấy dữ liệu từ form
-    const formData = new FormData(event.target);
-
-    // Tạo object từ formData để dễ dàng truy cập dữ liệu
-    const formValues = {};
-    formData.forEach((value, key) => {
-        formValues[key] = value;
-        console.log({ formValues, key, value });
-    });
-
-    // In ra console các giá trị mà người dùng nhập vào form
-    console.log('Dữ liệu từ form:', formValues);
-
-    // Reset form sau khi log dữ liệu (nếu cần)
-    // event.target.reset();
-}
 
 // Kiểm tra nếu có mã code trong URL (được trả về sau khi người dùng ủy quyền thành công)
 const urlParams = new URLSearchParams(window.location.search);
@@ -131,3 +111,36 @@ if (code) {
             alert('Lỗi xảy ra khi lấy accessToken từ Strava.');
         });
 }
+
+// Hàm để submit form
+function submitForm(event) {
+    event.preventDefault();
+
+    const formData = new FormData(event.target);
+    const fullName = formData.get('fullName');
+    const gender = formData.get('gender');
+    const dob = formData.get('dob');
+    const accessToken = localStorage.getItem('stravaAccessToken');
+    const athleteId = localStorage.getItem('athleteId');
+
+    const data = {
+        fullName: fullName,
+        gender: gender,
+        dob: dob,
+        athleteId: athleteId,
+        accessToken: accessToken
+    };
+
+    // Gửi dữ liệu lên Google Sheets qua SheetDB
+    axios.post(sheetDbUrl, data)
+        .then(response => {
+            console.log('Dữ liệu đã được gửi thành công:', response.data);
+            alert('Đăng ký thành công!');
+        })
+        .catch(error => {
+            console.error('Lỗi khi gửi dữ liệu:', error);
+            alert('Đăng ký thất bại, vui lòng thử lại.');
+        });
+}
+
+document.getElementById('registrationForm').addEventListener('submit', submitForm);
