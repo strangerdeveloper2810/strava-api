@@ -125,19 +125,18 @@ function submitForm(event) {
     const athleteId = localStorage.getItem('athleteId');
     const stravaProfileUrl = localStorage.getItem('stravaProfileUrl');
 
-    const data = JSON.stringify({
-        data: [
+    const data = {
+        "data": [
             {
-                'Mã Người Tham gia': athleteId,
-                'Họ và Tên': fullName,
-                'Giới tính': gender,
-                'Ngày tháng năm sinh': dob,
-                'URL Strava': stravaProfileUrl,
-                'Access Token': accessToken,
-                'Timestamp': new Date().toISOString()
+                "athleteId": athleteId,
+                "fullName": fullName,
+                "gender": gender,
+                "dob": dob,
+                "accessToken": accessToken,
+                "stravaProfileUrl": stravaProfileUrl
             }
         ]
-    })
+    }
 
     // Gửi dữ liệu lên Google Sheets qua SheetDB
     axios.post(sheetDbUrl, data)
