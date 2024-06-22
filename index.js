@@ -125,7 +125,7 @@ function fetchActivities(accessToken) {
     const toDate = moment().unix(); // Ngày hiện tại, chuyển đổi thành timestamp giây
 
     const params = {
-        after: fromDate,
+        // after: fromDate,
         before: toDate
     };
 
