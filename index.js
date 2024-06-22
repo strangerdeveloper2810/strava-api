@@ -97,11 +97,13 @@
 // document.getElementById('registrationForm').addEventListener('submit', submitForm);
 // Yêu cầu 1 và 2;
 // index.js
+// index.js
 const clientId = '127128';
 const clientSecret = 'b6097f741c5e7156764b8350179145222fa1cfa4';
 const scope = 'read,activity:read_all';
 const redirectUri = 'https://strava-api-dun.vercel.app/';
-const sheetDbUrl = 'https://sheetdb.io/api/v1/6q0812gcbeszf'
+const sheetDbUrlRegistration = 'https://sheetdb.io/api/v1/6q0812gcbeszf';
+const sheetDbUrlActivities = 'https://sheetdb.io/api/v1/d6xx9ubr2edrr';
 
 // Hàm để gửi yêu cầu lấy access token từ Strava
 function fetchAccessToken(code) {
@@ -121,7 +123,7 @@ function fetchAccessToken(code) {
 // Hàm để lấy danh sách hoạt động từ Strava
 function fetchActivities(accessToken) {
     const activitiesUrl = 'https://www.strava.com/api/v3/athlete/activities';
-    const fromDate = moment('2024-06-01T00:00:00Z').unix(); // Ngày bắt đầu lấy hoạt động, chuyển đổi thành timestamp giây
+    // const fromDate = moment('2024-06-01T00:00:00Z').unix(); // Ngày bắt đầu lấy hoạt động, chuyển đổi thành timestamp giây
     const toDate = moment().unix(); // Ngày hiện tại, chuyển đổi thành timestamp giây
 
     const params = {
@@ -197,7 +199,7 @@ if (code) {
                         };
 
                         // Gửi dữ liệu hoạt động lên Google Sheets qua SheetDB
-                        axios.post(sheetDbUrl, { data: [activityData] })
+                        axios.post(sheetDbUrlActivities, { data: [activityData] })
                             .then(sheetResponse => {
                                 console.log('Dữ liệu hoạt động đã được gửi thành công:', sheetResponse.data);
                             })
@@ -242,7 +244,7 @@ function submitForm(event) {
     }
 
     // Gửi dữ liệu lên Google Sheets qua SheetDB
-    axios.post(sheetDbUrl, data)
+    axios.post(sheetDbUrlRegistration, data)
         .then(response => {
             console.log('Dữ liệu đã được gửi thành công:', response.data);
             alert('Đăng ký thành công!');
