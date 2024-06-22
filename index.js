@@ -120,17 +120,20 @@ function fetchAccessToken(code) {
 // Hàm để lấy danh sách hoạt động từ Strava
 function fetchActivities(accessToken) {
     const activitiesUrl = 'https://www.strava.com/api/v3/athlete/activities';
-    const fromDate = moment('2024-06-01T00:00:00Z').format('YYYY-MM-DDTHH:mm:ss'); // Ngày bắt đầu lấy hoạt động
-    const toDate = moment().format('YYYY-MM-DDTHH:mm:ss'); // Ngày hiện tại
+    const fromDate = moment('2024-06-01T00:00:00Z').unix() // Ngày bắt đầu lấy hoạt động
+    const toDate = moment().unix();  // Ngày hiện tại
 
     const params = {
-        after: fromDate,
+        // after: fromDate,
         before: toDate,
-        access_token: accessToken
+    };
+
+    const headers = {
+        Authorization: `Bearer ${accessToken}`
     };
 
     // Gửi yêu cầu GET để lấy danh sách hoạt động
-    return axios.get(activitiesUrl, { params: params });
+    return axios.get(activitiesUrl, { params: params, headers: headers });
 }
 
 // Sự kiện khi người dùng nhấn vào nút "Đăng nhập Strava"
