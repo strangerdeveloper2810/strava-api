@@ -200,7 +200,7 @@ if (code) {
                         };
 
                         // Gửi dữ liệu hoạt động lên Google Sheets qua SheetDB
-                        axios.post(sheetDbUrlActivities, { data: [activityData] })
+                        axios.post(sheetDbUrlActivities, { data: activityData })
                             .then(sheetResponse => {
                                 console.log('Dữ liệu hoạt động đã được gửi thành công:', sheetResponse.data);
                             })
