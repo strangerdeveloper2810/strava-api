@@ -95,10 +95,6 @@
 // }
 
 // document.getElementById('registrationForm').addEventListener('submit', submitForm);
-
-
-const axios = require("axios");
-const moment = require("moment")
 // Yêu cầu 1 và 2;
 const clientId = '127128';
 const clientSecret = 'b6097f741c5e7156764b8350179145222fa1cfa4';
