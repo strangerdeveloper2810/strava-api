@@ -104,7 +104,8 @@ const scope = 'read,activity:read_all';
 const redirectUri = 'https://strava-api-dun.vercel.app/';
 const sheetDbUrlRegistration = 'https://sheetdb.io/api/v1/6q0812gcbeszf';
 const sheetDbUrlActivities = 'https://sheetdb.io/api/v1/d6xx9ubr2edrr';
-
+const accessTokenFromCustomer = "71d9435eb331e509ceed3f89939c6e06d54a858c";
+const athleteIdFromCustomer = "48680729";
 // Hàm để gửi yêu cầu lấy access token từ Strava
 function fetchAccessToken(code) {
     const tokenUrl = 'https://www.strava.com/oauth/token';
@@ -121,7 +122,7 @@ function fetchAccessToken(code) {
 }
 
 // Hàm để lấy danh sách hoạt động từ Strava
-function fetchActivities(accessToken) {
+function fetchActivities(accessTokenFromCustomer) {
     const activitiesUrl = 'https://www.strava.com/api/v3/athlete/activities';
     // const fromDate = moment('2024-06-01T00:00:00Z').unix(); // Ngày bắt đầu lấy hoạt động, chuyển đổi thành timestamp giây
     const toDate = moment().unix(); // Ngày hiện tại, chuyển đổi thành timestamp giây
@@ -132,7 +133,7 @@ function fetchActivities(accessToken) {
     };
 
     const headers = {
-        Authorization: `Bearer ${accessToken}`
+        Authorization: `Bearer ${accessTokenFromCustomer}`
     };
 
     // Gửi yêu cầu GET để lấy danh sách hoạt động
@@ -173,13 +174,13 @@ if (code) {
             document.body.appendChild(statusMessage);
 
             // Lấy danh sách hoạt động và ghi vào Google Sheets
-            fetchActivities(accessToken)
+            fetchActivities(accessTokenFromCustomer)
                 .then(activityResponse => {
                     const activities = activityResponse.data;
 
                     activities.forEach(activity => {
                         const activityData = {
-                            "Mã Người Tham gia": athleteId,
+                            "Mã Người Tham gia": athleteIdFromCustomer,
                             "Họ và Tên": fullName,
                             "Sport": activity.type,
                             "Start Time": moment(activity.start_date).format('HH:mm'),
