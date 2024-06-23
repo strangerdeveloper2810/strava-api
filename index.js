@@ -105,6 +105,7 @@ const redirectUri = 'https://strava-api-dun.vercel.app/';
 const sheetDbUrlRegistration = 'https://sheetdb.io/api/v1/6q0812gcbeszf';
 const sheetDbUrlActivities = 'https://sheetdb.io/api/v1/2iethxwsa7ic3';
 
+// Hàm để gửi yêu cầu lấy access token từ Strava
 function fetchAccessToken(code) {
     const tokenUrl = 'https://www.strava.com/oauth/token';
     const params = {
@@ -122,11 +123,9 @@ function fetchAccessToken(code) {
 // Hàm để lấy danh sách hoạt động từ Strava
 function fetchActivities(accessToken) {
     const activitiesUrl = 'https://www.strava.com/api/v3/athlete/activities';
-    // const fromDate = moment('2024-06-01T00:00:00Z').unix(); // Ngày bắt đầu lấy hoạt động, chuyển đổi thành timestamp giây
     const toDate = moment().unix(); // Ngày hiện tại, chuyển đổi thành timestamp giây
 
     const params = {
-        // after: fromDate,
         before: toDate
     };
 
@@ -170,6 +169,43 @@ if (code) {
             statusMessage.textContent = 'Authorize thành công!';
             statusMessage.style.display = 'block';
             document.body.appendChild(statusMessage);
+        })
+        .catch(error => {
+            console.error('Error fetching access token:', error.response.data);
+            alert('Lỗi xảy ra khi lấy accessToken từ Strava.');
+        });
+}
+
+// Hàm để submit form
+function submitForm(event) {
+    event.preventDefault();
+
+    const formData = new FormData(event.target);
+    const fullName = formData.get('fullName');
+    const gender = formData.get('gender');
+    const dob = formData.get('dob');
+    const accessToken = localStorage.getItem('stravaAccessToken');
+    const athleteId = localStorage.getItem('athleteId');
+    const timestamp = new Date().toLocaleString('vi-VN', { timeZone: 'Asia/Ho_Chi_Minh' });
+
+    const registrationData = {
+        "data": [
+            {
+                "Mã Người Tham gia": athleteId,
+                "Họ và Tên": fullName,
+                "Giới tính": gender,
+                "Ngày tháng năm sinh": dob,
+                "Access Token": accessToken,
+                "Timestamp": timestamp
+            }
+        ]
+    }
+
+    // Gửi dữ liệu đăng ký lên Google Sheets qua SheetDB
+    axios.post(sheetDbUrlRegistration, registrationData)
+        .then(response => {
+            console.log('Dữ liệu đã được gửi thành công:', response.data);
+            alert('Đăng ký thành công!');
 
             // Lấy danh sách hoạt động và ghi vào Google Sheets
             fetchActivities(accessToken)
@@ -191,14 +227,14 @@ if (code) {
                             "Elapsed time": moment.utc(activity.elapsed_time * 1000).format('HH:mm'),
                             "Average Elapsed Pace": activity.type === 'Run' || activity.type === 'Walk' ? moment.utc(activity.elapsed_time * 1000).format('mm:ss') : '',
                             "Average Elapsed Speed": activity.type === 'Ride' ? (activity.elapsed_time * 3.6).toFixed(2) : '',
-                            "Fastest Split Pace": activity.type === 'Run' || activity.type === 'Walk' ? moment.utc(activity.best_efforts[0].elapsed_time * 1000).format('mm:ss') : '',
+                            "Fastest Split Pace": activity.type === 'Run' || activity.type === 'Walk' ? moment.utc(activity.best_efforts[0]?.elapsed_time * 1000).format('mm:ss') : '',
                             "Max Speed": activity.type === 'Ride' ? (activity.max_speed * 3.6).toFixed(2) : '',
                             "Manual": activity.manual,
                             "Tagged": activity.flagged
                         };
 
                         // Gửi dữ liệu hoạt động lên Google Sheets qua SheetDB
-                        axios.post(sheetDbUrlActivities, { data: [activityData] })
+                        axios.post(sheetDbUrlActivities, { data: activityData })
                             .then(sheetResponse => {
                                 console.log('Dữ liệu hoạt động đã được gửi thành công:', sheetResponse.data);
                             })
@@ -210,43 +246,6 @@ if (code) {
                 .catch(activityError => {
                     console.error('Lỗi khi lấy danh sách hoạt động:', activityError);
                 });
-        })
-        .catch(error => {
-            console.error('Error fetching access token:', error.response.data);
-            alert('Lỗi xảy ra khi lấy accessToken từ Strava.');
-        });
-}
-
-// Hàm để submit form
-function submitForm(event) {
-    event.preventDefault();
-
-    const formData = new FormData(event.target);
-    const fullName = formData.get('fullName');
-    const gender = formData.get('gender');
-    const dob = formData.get('dob');
-    const accessToken = localStorage.getItem('stravaAccessToken');
-    const athleteId = localStorage.getItem('athleteId');
-    const timestamp = new Date().toLocaleString('vi-VN', { timeZone: 'Asia/Ho_Chi_Minh' });
-
-    const data = {
-        "data": [
-            {
-                "Mã Người Tham gia": athleteId,
-                "Họ và Tên": fullName,
-                "Giới tính": gender,
-                "Ngày tháng năm sinh": dob,
-                "Access Token": accessToken,
-                "Timestamp": timestamp
-            }
-        ]
-    }
-
-    // Gửi dữ liệu lên Google Sheets qua SheetDB
-    axios.post(sheetDbUrlRegistration, data)
-        .then(response => {
-            console.log('Dữ liệu đã được gửi thành công:', response.data);
-            alert('Đăng ký thành công!');
         })
         .catch(error => {
             console.error('Lỗi khi gửi dữ liệu:', error);
