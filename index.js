@@ -104,8 +104,6 @@ const scope = 'read,activity:read_all';
 const redirectUri = 'https://strava-api-dun.vercel.app/';
 const sheetDbUrlRegistration = 'https://sheetdb.io/api/v1/6q0812gcbeszf';
 const sheetDbUrlActivities = 'https://sheetdb.io/api/v1/2iethxwsa7ic3';
-const accessTokenFromCustomer = "71d9435eb331e509ceed3f89939c6e06d54a858c";
-const athleteIdFromCustomer = "48680729";
 // Hàm để gửi yêu cầu lấy access token từ Strava
 function fetchAccessToken(code) {
     const tokenUrl = 'https://www.strava.com/oauth/token';
@@ -122,7 +120,7 @@ function fetchAccessToken(code) {
 }
 
 // Hàm để lấy danh sách hoạt động từ Strava
-function fetchActivities(accessTokenFromCustomer) {
+function fetchActivities(accessToken) {
     const activitiesUrl = 'https://www.strava.com/api/v3/athlete/activities';
     // const fromDate = moment('2024-06-01T00:00:00Z').unix(); // Ngày bắt đầu lấy hoạt động, chuyển đổi thành timestamp giây
     const toDate = moment().unix(); // Ngày hiện tại, chuyển đổi thành timestamp giây
@@ -133,7 +131,7 @@ function fetchActivities(accessTokenFromCustomer) {
     };
 
     const headers = {
-        Authorization: `Bearer ${accessTokenFromCustomer}`
+        Authorization: `Bearer ${accessToken}`
     };
 
     // Gửi yêu cầu GET để lấy danh sách hoạt động
@@ -174,7 +172,7 @@ if (code) {
             document.body.appendChild(statusMessage);
 
             // Lấy danh sách hoạt động và ghi vào Google Sheets
-            fetchActivities(accessTokenFromCustomer)
+            fetchActivities(accessToken)
                 .then(activityResponse => {
                     const activities = activityResponse.data;
 
