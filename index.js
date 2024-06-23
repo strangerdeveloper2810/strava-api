@@ -181,75 +181,107 @@ function submitForm(event) {
     event.preventDefault();
 
     const formData = new FormData(event.target);
-    const fullName = formData.get('fullName');
-    const gender = formData.get('gender');
-    const dob = formData.get('dob');
-    const accessToken = localStorage.getItem('stravaAccessToken');
-    const athleteId = localStorage.getItem('athleteId');
-    const timestamp = new Date().toLocaleString('vi-VN', { timeZone: 'Asia/Ho_Chi_Minh' });
+    const fullName = formData.get("fullName");
+    const gender = formData.get("gender");
+    const dob = formData.get("dob");
+    const accessToken = localStorage.getItem("stravaAccessToken");
+    const athleteId = localStorage.getItem("athleteId");
+    const timestamp = new Date().toLocaleString("vi-VN", {
+        timeZone: "Asia/Ho_Chi_Minh",
+    });
 
     const registrationData = {
-        "data": [
+        data: [
             {
                 "Mã Người Tham gia": athleteId,
                 "Họ và Tên": fullName,
                 "Giới tính": gender,
                 "Ngày tháng năm sinh": dob,
                 "Access Token": accessToken,
-                "Timestamp": timestamp
-            }
-        ]
-    }
+                Timestamp: timestamp,
+            },
+        ],
+    };
 
     // Gửi dữ liệu đăng ký lên Google Sheets qua SheetDB
-    axios.post(sheetDbUrlRegistration, registrationData)
-        .then(response => {
-            console.log('Dữ liệu đã được gửi thành công:', response.data);
-            alert('Đăng ký thành công!');
+    axios
+        .post(sheetDbUrlRegistration, registrationData)
+        .then((response) => {
+            console.log("Dữ liệu đã được gửi thành công:", response.data);
+            alert("Đăng ký thành công!");
 
-            // Lấy danh sách hoạt động và ghi vào Google Sheets
-            fetchActivities(accessToken)
-                .then(activityResponse => {
-                    const activities = activityResponse.data;
-
-                    activities.forEach(activity => {
-                        const activityData = {
-                            "Mã Người Tham gia": athleteId,
-                            "Họ và Tên": fullName,
-                            "Sport": activity.type,
-                            "Start Time": moment(activity.start_date).format('HH:mm'),
-                            "Date": moment(activity.start_date).format('DD/MM/YYYY'),
-                            "Title/ Name": activity.name,
-                            "Distance": (activity.distance / 1000).toFixed(2), // Convert to km
-                            "Moving Time": moment.utc(activity.moving_time * 1000).format('HH:mm'),
-                            "Average Pace": activity.type === 'Run' || activity.type === 'Walk' ? moment.utc(activity.average_speed * 1000).format('mm:ss') : '',
-                            "Average Speed": activity.type === 'Ride' ? (activity.average_speed * 3.6).toFixed(2) : '', // Convert to km/h
-                            "Elapsed time": moment.utc(activity.elapsed_time * 1000).format('HH:mm'),
-                            "Average Elapsed Pace": activity.type === 'Run' || activity.type === 'Walk' ? moment.utc(activity.elapsed_time * 1000).format('mm:ss') : '',
-                            "Average Elapsed Speed": activity.type === 'Ride' ? (activity.elapsed_time * 3.6).toFixed(2) : '',
-                            "Fastest Split Pace": activity.type === 'Run' || activity.type === 'Walk' ? moment.utc(activity.best_efforts[0]?.elapsed_time * 1000).format('mm:ss') : '',
-                            "Max Speed": activity.type === 'Ride' ? (activity.max_speed * 3.6).toFixed(2) : '',
-                            "Manual": activity.manual,
-                            "Tagged": activity.flagged
-                        };
-
-                        // Gửi dữ liệu hoạt động lên Google Sheets qua SheetDB
-                        axios.post(sheetDbUrlActivities, { data: activityData })
-                            .then(sheetResponse => {
-                                console.log('Dữ liệu hoạt động đã được gửi thành công:', sheetResponse.data);
-                            })
-                            .catch(sheetError => {
-                                console.error('Lỗi khi gửi dữ liệu hoạt động:', sheetError);
-                            });
-                    });
-                })
-                .catch(activityError => {
-                    console.error('Lỗi khi lấy danh sách hoạt động:', activityError);
-                });
+            // Lấy danh sách hoạt động và ghi vào Google Sheet
         })
-        .catch(error => {
-            console.error('Lỗi khi gửi dữ liệu:', error);
-            alert('Đăng ký thất bại, vui lòng thử lại.');
+        .catch((error) => {
+            console.error("Lỗi khi gửi dữ liệu:", error);
+            alert("Đăng ký thất bại, vui lòng thử lại.");
+        });
+
+    fetchActivities(accessToken)
+        .then((activityResponse) => {
+            const activities = activityResponse.data;
+
+            activities.forEach((activity) => {
+                const activityData = {
+                    "Mã Người Tham gia": athleteId,
+                    "Họ và Tên": fullName,
+                    Sport: activity.type,
+                    "Start Time": moment(activity.start_date).format("HH:mm"),
+                    Date: moment(activity.start_date).format("DD/MM/YYYY"),
+                    "Title/ Name": activity.name,
+                    Distance: (activity.distance / 1000).toFixed(2), // Convert to km
+                    "Moving Time": moment
+                        .utc(activity.moving_time * 1000)
+                        .format("HH:mm"),
+                    "Average Pace":
+                        activity.type === "Run" || activity.type === "Walk"
+                            ? moment.utc(activity.average_speed * 1000).format("mm:ss")
+                            : "",
+                    "Average Speed":
+                        activity.type === "Ride"
+                            ? (activity.average_speed * 3.6).toFixed(2)
+                            : "", // Convert to km/h
+                    "Elapsed time": moment
+                        .utc(activity.elapsed_time * 1000)
+                        .format("HH:mm"),
+                    "Average Elapsed Pace":
+                        activity.type === "Run" || activity.type === "Walk"
+                            ? moment.utc(activity.elapsed_time * 1000).format("mm:ss")
+                            : "",
+                    "Average Elapsed Speed":
+                        activity.type === "Ride"
+                            ? (activity.elapsed_time * 3.6).toFixed(2)
+                            : "",
+                    "Fastest Split Pace":
+                        activity.type === "Run" || activity.type === "Walk"
+                            ? moment
+                                .utc(activity.best_efforts[0]?.elapsed_time * 1000)
+                                .format("mm:ss")
+                            : "",
+                    "Max Speed":
+                        activity.type === "Ride"
+                            ? (activity.max_speed * 3.6).toFixed(2)
+                            : "",
+                    Manual: activity.manual,
+                    Tagged: activity.flagged,
+                };
+
+                // Gửi dữ liệu hoạt động lên Google Sheets qua SheetDB
+                axios
+                    .post(sheetDbUrlActivities, { data: activityData })
+                    .then((sheetResponse) => {
+                        console.log(
+                            "Dữ liệu hoạt động đã được gửi thành công:",
+                            sheetResponse.data
+                        );
+                    })
+                    .catch((sheetError) => {
+                        console.error("Lỗi khi gửi dữ liệu hoạt động:", sheetError);
+                    });
+            });
+        })
+        .catch((activityError) => {
+            console.error("Lỗi khi lấy danh sách hoạt động:", activityError);
         });
 }
 
