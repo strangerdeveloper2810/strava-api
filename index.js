@@ -210,79 +210,80 @@ function submitForm(event) {
             console.log("Dữ liệu đã được gửi thành công:", response.data);
             alert("Đăng ký thành công!");
 
-            // Lấy danh sách hoạt động và ghi vào Google Sheet
+            // Lấy danh sách hoạt động và ghi vào Google Sheets
+            fetchActivities(accessToken)
+                .then((activityResponse) => {
+                    const activities = activityResponse.data;
+                    console.log("Activities:", activities); // Log dữ liệu hoạt động để kiểm tra
+
+                    activities.forEach((activity) => {
+                        const activityData = {
+                            "Mã Người Tham gia": athleteId,
+                            "Họ và Tên": fullName,
+                            Sport: activity.type,
+                            "Start Time": moment(activity.start_date).format("HH:mm"),
+                            Date: moment(activity.start_date).format("DD/MM/YYYY"),
+                            "Title/ Name": activity.name,
+                            Distance: (activity.distance / 1000).toFixed(2), // Convert to km
+                            "Moving Time": moment
+                                .utc(activity.moving_time * 1000)
+                                .format("HH:mm"),
+                            "Average Pace":
+                                activity.type === "Run" || activity.type === "Walk"
+                                    ? moment.utc(activity.average_speed * 1000).format("mm:ss")
+                                    : "",
+                            "Average Speed":
+                                activity.type === "Ride"
+                                    ? (activity.average_speed * 3.6).toFixed(2)
+                                    : "", // Convert to km/h
+                            "Elapsed time": moment
+                                .utc(activity.elapsed_time * 1000)
+                                .format("HH:mm"),
+                            "Average Elapsed Pace":
+                                activity.type === "Run" || activity.type === "Walk"
+                                    ? moment.utc(activity.elapsed_time * 1000).format("mm:ss")
+                                    : "",
+                            "Average Elapsed Speed":
+                                activity.type === "Ride"
+                                    ? (activity.elapsed_time * 3.6).toFixed(2)
+                                    : "",
+                            "Fastest Split Pace":
+                                activity.type === "Run" || activity.type === "Walk"
+                                    ? moment
+                                        .utc(activity.best_efforts[0]?.elapsed_time * 1000)
+                                        .format("mm:ss")
+                                    : "",
+                            "Max Speed":
+                                activity.type === "Ride"
+                                    ? (activity.max_speed * 3.6).toFixed(2)
+                                    : "",
+                            Manual: activity.manual,
+                            Tagged: activity.flagged,
+                        };
+
+                        // Gửi dữ liệu hoạt động lên Google Sheets qua SheetDB
+                        console.log("Sending activity data to SheetDB:", activityData); // Log dữ liệu trước khi gửi
+                        axios
+                            .post(sheetDbUrlActivities, { data: activityData })
+                            .then((sheetResponse) => {
+                                console.log(
+                                    "Dữ liệu hoạt động đã được gửi thành công:",
+                                    sheetResponse.data
+                                );
+                            })
+                            .catch((sheetError) => {
+                                console.error("Lỗi khi gửi dữ liệu hoạt động:", sheetError);
+                            });
+                    });
+                })
+                .catch((activityError) => {
+                    console.error("Lỗi khi lấy danh sách hoạt động:", activityError);
+                });
         })
         .catch((error) => {
             console.error("Lỗi khi gửi dữ liệu:", error);
             alert("Đăng ký thất bại, vui lòng thử lại.");
         });
-
-    fetchActivities(accessToken)
-        .then((activityResponse) => {
-            const activities = activityResponse.data;
-
-            activities.forEach((activity) => {
-                const activityData = {
-                    "Mã Người Tham gia": athleteId,
-                    "Họ và Tên": fullName,
-                    Sport: activity.type,
-                    "Start Time": moment(activity.start_date).format("HH:mm"),
-                    Date: moment(activity.start_date).format("DD/MM/YYYY"),
-                    "Title/ Name": activity.name,
-                    Distance: (activity.distance / 1000).toFixed(2), // Convert to km
-                    "Moving Time": moment
-                        .utc(activity.moving_time * 1000)
-                        .format("HH:mm"),
-                    "Average Pace":
-                        activity.type === "Run" || activity.type === "Walk"
-                            ? moment.utc(activity.average_speed * 1000).format("mm:ss")
-                            : "",
-                    "Average Speed":
-                        activity.type === "Ride"
-                            ? (activity.average_speed * 3.6).toFixed(2)
-                            : "", // Convert to km/h
-                    "Elapsed time": moment
-                        .utc(activity.elapsed_time * 1000)
-                        .format("HH:mm"),
-                    "Average Elapsed Pace":
-                        activity.type === "Run" || activity.type === "Walk"
-                            ? moment.utc(activity.elapsed_time * 1000).format("mm:ss")
-                            : "",
-                    "Average Elapsed Speed":
-                        activity.type === "Ride"
-                            ? (activity.elapsed_time * 3.6).toFixed(2)
-                            : "",
-                    "Fastest Split Pace":
-                        activity.type === "Run" || activity.type === "Walk"
-                            ? moment
-                                .utc(activity.best_efforts[0]?.elapsed_time * 1000)
-                                .format("mm:ss")
-                            : "",
-                    "Max Speed":
-                        activity.type === "Ride"
-                            ? (activity.max_speed * 3.6).toFixed(2)
-                            : "",
-                    Manual: activity.manual,
-                    Tagged: activity.flagged,
-                };
-
-                // Gửi dữ liệu hoạt động lên Google Sheets qua SheetDB
-                axios
-                    .post(sheetDbUrlActivities, { data: activityData })
-                    .then((sheetResponse) => {
-                        console.log(
-                            "Dữ liệu hoạt động đã được gửi thành công:",
-                            sheetResponse.data
-                        );
-                    })
-                    .catch((sheetError) => {
-                        console.error("Lỗi khi gửi dữ liệu hoạt động:", sheetError);
-                    });
-            });
-        })
-        .catch((activityError) => {
-            console.error("Lỗi khi lấy danh sách hoạt động:", activityError);
-        });
 }
 
-document.getElementById('registrationForm').addEventListener('submit', submitForm);
+document.getElementById("registrationForm").addEventListener("submit", submitForm);
