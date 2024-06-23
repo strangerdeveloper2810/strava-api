@@ -104,7 +104,7 @@ const scope = 'read,activity:read_all';
 const redirectUri = 'https://strava-api-dun.vercel.app/';
 const sheetDbUrlRegistration = 'https://sheetdb.io/api/v1/6q0812gcbeszf';
 const sheetDbUrlActivities = 'https://sheetdb.io/api/v1/2iethxwsa7ic3';
-// Hàm để gửi yêu cầu lấy access token từ Strava
+
 function fetchAccessToken(code) {
     const tokenUrl = 'https://www.strava.com/oauth/token';
     const params = {
@@ -178,7 +178,7 @@ if (code) {
 
                     activities.forEach(activity => {
                         const activityData = {
-                            "Mã Người Tham gia": athleteIdFromCustomer,
+                            "Mã Người Tham gia": athleteId,
                             "Họ và Tên": fullName,
                             "Sport": activity.type,
                             "Start Time": moment(activity.start_date).format('HH:mm'),
@@ -198,7 +198,7 @@ if (code) {
                         };
 
                         // Gửi dữ liệu hoạt động lên Google Sheets qua SheetDB
-                        axios.post(sheetDbUrlActivities, { data: activityData })
+                        axios.post(sheetDbUrlActivities, { data: [activityData] })
                             .then(sheetResponse => {
                                 console.log('Dữ liệu hoạt động đã được gửi thành công:', sheetResponse.data);
                             })
