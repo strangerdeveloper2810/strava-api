@@ -97,7 +97,6 @@
 // document.getElementById('registrationForm').addEventListener('submit', submitForm);
 // Yêu cầu 1 và 2;
 // index.js
-// index.js
 const clientId = '127128';
 const clientSecret = 'b6097f741c5e7156764b8350179145222fa1cfa4';
 const scope = 'read,activity:read_all';
@@ -215,6 +214,11 @@ function submitForm(event) {
                 .then((activityResponse) => {
                     const activities = activityResponse.data;
                     console.log("Activities:", activities); // Log dữ liệu hoạt động để kiểm tra
+
+                    if (activities.length === 0) {
+                        console.log("No activities found for this athlete.");
+                        return;
+                    }
 
                     activities.forEach((activity) => {
                         const activityData = {
