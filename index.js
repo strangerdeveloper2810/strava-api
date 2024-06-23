@@ -103,7 +103,7 @@ const clientSecret = 'b6097f741c5e7156764b8350179145222fa1cfa4';
 const scope = 'read,activity:read_all';
 const redirectUri = 'https://strava-api-dun.vercel.app/';
 const sheetDbUrlRegistration = 'https://sheetdb.io/api/v1/6q0812gcbeszf';
-const sheetDbUrlActivities = 'https://sheetdb.io/api/v1/d6xx9ubr2edrr';
+const sheetDbUrlActivities = 'https://sheetdb.io/api/v1/2iethxwsa7ic3';
 const accessTokenFromCustomer = "71d9435eb331e509ceed3f89939c6e06d54a858c";
 const athleteIdFromCustomer = "48680729";
 // Hàm để gửi yêu cầu lấy access token từ Strava
