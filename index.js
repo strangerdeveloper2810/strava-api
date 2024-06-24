@@ -215,12 +215,7 @@ function submitForm(event) {
                     const activities = activityResponse.data;
                     console.log("Activities:", activities); // Log dữ liệu hoạt động để kiểm tra
 
-                    if (activities.length === 0) {
-                        console.log("No activities found for this athlete.");
-                        return;
-                    }
-
-                    activities.forEach((activity) => {
+                    const activityPromises = activities.map((activity) => {
                         const activityData = {
                             "Mã Người Tham gia": athleteId,
                             "Họ và Tên": fullName,
@@ -267,18 +262,16 @@ function submitForm(event) {
 
                         // Gửi dữ liệu hoạt động lên Google Sheets qua SheetDB
                         console.log("Sending activity data to SheetDB:", activityData); // Log dữ liệu trước khi gửi
-                        axios
-                            .post(sheetDbUrlActivities, { data: activityData })
-                            .then((sheetResponse) => {
-                                console.log(
-                                    "Dữ liệu hoạt động đã được gửi thành công:",
-                                    sheetResponse.data
-                                );
-                            })
-                            .catch((sheetError) => {
-                                console.error("Lỗi khi gửi dữ liệu hoạt động:", sheetError);
-                            });
+                        return axios.post(sheetDbUrlActivities, { data: activityData });
                     });
+
+                    Promise.all(activityPromises)
+                        .then((results) => {
+                            console.log("Tất cả dữ liệu hoạt động đã được gửi thành công:", results);
+                        })
+                        .catch((error) => {
+                            console.error("Lỗi khi gửi dữ liệu hoạt động:", error);
+                        });
                 })
                 .catch((activityError) => {
                     console.error("Lỗi khi lấy danh sách hoạt động:", activityError);
