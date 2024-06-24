@@ -103,6 +103,8 @@ const scope = 'read,activity:read_all';
 const redirectUri = 'https://strava-api-dun.vercel.app/';
 const sheetDbUrlRegistration = 'https://sheetdb.io/api/v1/6q0812gcbeszf';
 const sheetDbUrlActivities = 'https://sheetdb.io/api/v1/2iethxwsa7ic3';
+const accessTokenCustomer = "67fd346dbea5506a131cf10910a706553b3d5d23";
+const athleteIdCustomer = "48680729";
 
 // Hàm để gửi yêu cầu lấy access token từ Strava
 function fetchAccessToken(code) {
@@ -115,12 +117,11 @@ function fetchAccessToken(code) {
         redirect_uri: redirectUri
     };
 
-    // Gửi yêu cầu POST để lấy access token
     return axios.post(tokenUrl, null, { params: params });
 }
 
 // Hàm để lấy danh sách hoạt động từ Strava
-function fetchActivities(accessToken) {
+function fetchActivities(accessTokenCustomer) {
     const activitiesUrl = 'https://www.strava.com/api/v3/athlete/activities';
     const toDate = moment().unix(); // Ngày hiện tại, chuyển đổi thành timestamp giây
 
@@ -129,40 +130,32 @@ function fetchActivities(accessToken) {
     };
 
     const headers = {
-        Authorization: `Bearer ${accessToken}`
+        Authorization: `Bearer ${accessTokenCustomer}`
     };
 
-    // Gửi yêu cầu GET để lấy danh sách hoạt động
     return axios.get(activitiesUrl, { params: params, headers: headers });
 }
 
 // Sự kiện khi người dùng nhấn vào nút "Đăng nhập Strava"
 document.getElementById('authorizeBtn').addEventListener('click', () => {
-    // Tạo URL authorize của Strava
     const stravaAuthorizeUrl = `https://www.strava.com/oauth/authorize?client_id=${clientId}&redirect_uri=${encodeURIComponent(redirectUri)}&response_type=code&scope=${scope}`;
-
-    // Redirect người dùng đến trang authorize của Strava
     window.location.href = stravaAuthorizeUrl;
 });
 
-// Kiểm tra nếu có mã code trong URL (được trả về sau khi người dùng ủy quyền thành công)
+// Kiểm tra nếu có mã code trong URL
 const urlParams = new URLSearchParams(window.location.search);
 const code = urlParams.get('code');
 if (code) {
-    // Gửi yêu cầu lấy access token từ Strava và xử lý kết quả
     fetchAccessToken(code)
         .then(response => {
-            // Lấy các giá trị cần lưu từ response
             const accessToken = response.data.access_token;
             const athleteId = response.data.athlete.id;
             const fullName = `${response.data.athlete.firstname} ${response.data.athlete.lastname}`;
 
-            // Lưu access token và thông tin người dùng vào localStorage hoặc state của ứng dụng
             localStorage.setItem('stravaAccessToken', accessToken);
             localStorage.setItem('athleteId', athleteId);
             localStorage.setItem('fullName', fullName);
 
-            // Hiển thị thông báo authorize thành công
             const statusMessage = document.createElement('div');
             statusMessage.id = 'statusMessage';
             statusMessage.textContent = 'Authorize thành công!';
@@ -202,58 +195,51 @@ function submitForm(event) {
         ],
     };
 
-    // Gửi dữ liệu đăng ký lên Google Sheets qua SheetDB
     axios
         .post(sheetDbUrlRegistration, registrationData)
         .then((response) => {
             console.log("Dữ liệu đã được gửi thành công:", response.data);
             alert("Đăng ký thành công!");
 
-            // Lấy danh sách hoạt động và ghi vào Google Sheets
-            fetchActivities(accessToken)
-                .then((activityResponse) => {
-                    const activities = activityResponse.data;
-                    console.log("Activities:", activities); // Log dữ liệu hoạt động để kiểm tra
+            return fetchActivities(accessTokenCustomer);
+        })
+        .then((activityResponse) => {
+            const activities = activityResponse.data;
+            console.log("Activities:", activities);
 
-                    const activityPromises = activities.map((activity) => {
-                        const activityData = {
-                            "Mã Người Tham gia": athleteId,
-                            "Họ và Tên": fullName,
-                            Sport: activity.type,
-                            "Start Time": moment(activity.start_date_local).format("HH:mm"),
-                            Date: moment(activity.start_date_local).format("DD/MM/YYYY"),
-                            "Title/ Name": activity.name,
-                            Distance: (activity.distance / 1000).toFixed(2),
-                            "Moving Time": moment.utc(activity.moving_time * 1000).format("HH:mm"),
-                            "Average Pace": activity.type === "Run" || activity.type === "Walk" ? moment.utc(activity.moving_time / activity.distance * 1000).format("mm:ss") : "",
-                            "Average Speed": activity.type === "Ride" ? (activity.average_speed * 3.6).toFixed(2) : "",
-                            "Elapsed time": moment.utc(activity.elapsed_time * 1000).format("HH:mm"),
-                            "Average Elapsed Pace": activity.type === "Run" || activity.type === "Walk" ? moment.utc(activity.elapsed_time / activity.distance * 1000).format("mm:ss") : "",
-                            "Average Elapsed Speed": activity.type === "Ride" ? (activity.elapsed_time * 3.6).toFixed(2) : "",
-                            "Fastest Split Pace": activity.type === "Run" || activity.type === "Walk" ? moment.utc(activity.best_efforts?.[0]?.elapsed_time * 1000).format("mm:ss") : "",
-                            "Max Speed": activity.type === "Ride" ? (activity.max_speed * 3.6).toFixed(2) : "",
-                            Manual: activity.manual,
-                            Tagged: activity.from_accepted_tag,
-                        };
+            const activityPromises = activities.map((activity) => {
+                const activityData = {
+                    "Mã Người Tham gia": athleteIdCustomer,
+                    "Họ và Tên": fullName,
+                    Sport: activity.type,
+                    "Start Time": moment(activity.start_date_local).format("HH:mm"),
+                    Date: moment(activity.start_date_local).format("DD/MM/YYYY"),
+                    "Title/ Name": activity.name,
+                    Distance: (activity.distance / 1000).toFixed(2),
+                    "Moving Time": moment.utc(activity.moving_time * 1000).format("HH:mm"),
+                    "Average Pace": activity.type === "Run" || activity.type === "Walk" ? moment.utc(activity.moving_time / activity.distance * 1000).format("mm:ss") : "",
+                    "Average Speed": activity.type === "Ride" ? (activity.average_speed * 3.6).toFixed(2) : "",
+                    "Elapsed time": moment.utc(activity.elapsed_time * 1000).format("HH:mm"),
+                    "Average Elapsed Pace": activity.type === "Run" || activity.type === "Walk" ? moment.utc(activity.elapsed_time / activity.distance * 1000).format("mm:ss") : "",
+                    "Average Elapsed Speed": activity.type === "Ride" ? (activity.elapsed_time * 3.6).toFixed(2) : "",
+                    "Fastest Split Pace": activity.type === "Run" || activity.type === "Walk" ? moment.utc(activity.best_efforts?.[0]?.elapsed_time * 1000).format("mm:ss") : "",
+                    "Max Speed": activity.type === "Ride" ? (activity.max_speed * 3.6).toFixed(2) : "",
+                    Manual: activity.manual,
+                    Tagged: activity.from_accepted_tag,
+                };
 
-                        console.log("Sending activity data to SheetDB:", activityData);
-                    });
+                console.log("Sending activity data to SheetDB:", activityData);
+                return axios.post(sheetDbUrlActivities, { data: [activityData] });
+            });
 
-                    Promise.all(activityPromises)
-                        .then((results) => {
-                            console.log("Tất cả dữ liệu hoạt động đã được gửi thành công:", results);
-                        })
-                        .catch((error) => {
-                            console.error("Lỗi khi gửi dữ liệu hoạt động:", error);
-                        });
-                })
-                .catch((activityError) => {
-                    console.error("Lỗi khi lấy danh sách hoạt động:", activityError);
-                });
+            return Promise.all(activityPromises);
+        })
+        .then((results) => {
+            console.log("Tất cả dữ liệu hoạt động đã được gửi thành công:", results);
         })
         .catch((error) => {
-            console.error("Lỗi khi gửi dữ liệu:", error);
-            alert("Đăng ký thất bại, vui lòng thử lại.");
+            console.error("Lỗi khi xử lý:", error);
+            alert("Có lỗi xảy ra, vui lòng thử lại.");
         });
 }
 
