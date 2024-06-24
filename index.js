@@ -220,49 +220,23 @@ function submitForm(event) {
                             "Mã Người Tham gia": athleteId,
                             "Họ và Tên": fullName,
                             Sport: activity.type,
-                            "Start Time": moment(activity.start_date).format("HH:mm"),
-                            Date: moment(activity.start_date).format("DD/MM/YYYY"),
+                            "Start Time": moment(activity.start_date_local).format("HH:mm"),
+                            Date: moment(activity.start_date_local).format("DD/MM/YYYY"),
                             "Title/ Name": activity.name,
-                            Distance: (activity.distance / 1000).toFixed(2), // Convert to km
-                            "Moving Time": moment
-                                .utc(activity.moving_time * 1000)
-                                .format("HH:mm"),
-                            "Average Pace":
-                                activity.type === "Run" || activity.type === "Walk"
-                                    ? moment.utc(activity.average_speed * 1000).format("mm:ss")
-                                    : "",
-                            "Average Speed":
-                                activity.type === "Ride"
-                                    ? (activity.average_speed * 3.6).toFixed(2)
-                                    : "", // Convert to km/h
-                            "Elapsed time": moment
-                                .utc(activity.elapsed_time * 1000)
-                                .format("HH:mm"),
-                            "Average Elapsed Pace":
-                                activity.type === "Run" || activity.type === "Walk"
-                                    ? moment.utc(activity.elapsed_time * 1000).format("mm:ss")
-                                    : "",
-                            "Average Elapsed Speed":
-                                activity.type === "Ride"
-                                    ? (activity.elapsed_time * 3.6).toFixed(2)
-                                    : "",
-                            "Fastest Split Pace":
-                                activity.type === "Run" || activity.type === "Walk"
-                                    ? moment
-                                        .utc(activity.best_efforts[0]?.elapsed_time * 1000)
-                                        .format("mm:ss")
-                                    : "",
-                            "Max Speed":
-                                activity.type === "Ride"
-                                    ? (activity.max_speed * 3.6).toFixed(2)
-                                    : "",
+                            Distance: (activity.distance / 1000).toFixed(2),
+                            "Moving Time": moment.utc(activity.moving_time * 1000).format("HH:mm"),
+                            "Average Pace": activity.type === "Run" || activity.type === "Walk" ? moment.utc(activity.moving_time / activity.distance * 1000).format("mm:ss") : "",
+                            "Average Speed": activity.type === "Ride" ? (activity.average_speed * 3.6).toFixed(2) : "",
+                            "Elapsed time": moment.utc(activity.elapsed_time * 1000).format("HH:mm"),
+                            "Average Elapsed Pace": activity.type === "Run" || activity.type === "Walk" ? moment.utc(activity.elapsed_time / activity.distance * 1000).format("mm:ss") : "",
+                            "Average Elapsed Speed": activity.type === "Ride" ? (activity.elapsed_time * 3.6).toFixed(2) : "",
+                            "Fastest Split Pace": activity.type === "Run" || activity.type === "Walk" ? moment.utc(activity.best_efforts?.[0]?.elapsed_time * 1000).format("mm:ss") : "",
+                            "Max Speed": activity.type === "Ride" ? (activity.max_speed * 3.6).toFixed(2) : "",
                             Manual: activity.manual,
-                            Tagged: activity.flagged,
+                            Tagged: activity.from_accepted_tag,
                         };
 
-                        // Gửi dữ liệu hoạt động lên Google Sheets qua SheetDB
-                        console.log("Sending activity data to SheetDB:", activityData); // Log dữ liệu trước khi gửi
-                        return axios.post(sheetDbUrlActivities, { data: activityData });
+                        console.log("Sending activity data to SheetDB:", activityData);
                     });
 
                     Promise.all(activityPromises)
