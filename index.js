@@ -103,8 +103,8 @@ const scope = 'read,activity:read_all';
 const redirectUri = 'https://strava-api-dun.vercel.app/';
 const sheetDbUrlRegistration = 'https://sheetdb.io/api/v1/6q0812gcbeszf';
 const sheetDbUrlActivities = 'https://sheetdb.io/api/v1/2iethxwsa7ic3';
-const accessTokenCustomer = "67fd346dbea5506a131cf10910a706553b3d5d23";
-const athleteIdCustomer = "48680729";
+// const accessTokenCustomer = "67fd346dbea5506a131cf10910a706553b3d5d23";
+// const athleteIdCustomer = "48680729";
 
 // Hàm để gửi yêu cầu lấy access token từ Strava
 function fetchAccessToken(code) {
@@ -121,7 +121,7 @@ function fetchAccessToken(code) {
 }
 
 // Hàm để lấy danh sách hoạt động từ Strava
-function fetchActivities(accessTokenCustomer) {
+function fetchActivities(accessToken) {
     const activitiesUrl = 'https://www.strava.com/api/v3/athlete/activities';
     const toDate = moment().unix(); // Ngày hiện tại, chuyển đổi thành timestamp giây
 
@@ -130,7 +130,7 @@ function fetchActivities(accessTokenCustomer) {
     };
 
     const headers = {
-        Authorization: `Bearer ${accessTokenCustomer}`
+        Authorization: `Bearer ${accessToken}`
     };
 
     return axios.get(activitiesUrl, { params: params, headers: headers });
@@ -201,7 +201,7 @@ function submitForm(event) {
             console.log("Dữ liệu đã được gửi thành công:", response.data);
             alert("Đăng ký thành công!");
 
-            return fetchActivities(accessTokenCustomer);
+            return fetchActivities(accessToken);
         })
         .then((activityResponse) => {
             const activities = activityResponse.data;
