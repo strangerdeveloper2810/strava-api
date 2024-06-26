@@ -5,10 +5,15 @@ const redirectUri = 'https://strava-api-dun.vercel.app/';
 const sheetDbUrlRegistration = 'https://sheetdb.io/api/v1/6q0812gcbeszf';
 const sheetDbUrlActivities = 'https://sheetdb.io/api/v1/2iethxwsa7ic3';
 const sheetDbUrlChallenge = 'https://sheetdb.io/api/v1/ge9q0s695kxj2';
-const accessTokenCustomer = "359b0711f3da2341df51b6de507f6ea5762bb4b9";
-const athleteIdCustomer = "48680729";
 
-const athleteData = {}
+// Các điều kiện hợp lệ
+const minDistanceWalkRun = 2; // Đơn vị km
+const minDistanceRide = 7; // Đơn vị km
+const minPaceWalkRun = moment.duration(15, 'minutes').asSeconds(); // 15:00 min/km
+const maxPaceWalkRun = moment.duration(4, 'minutes').asSeconds(); // 4:00 min/km
+const fastestSplitPaceWalkRun = moment.duration(3.5, 'minutes').asSeconds(); // 3:30 min/km
+const minSpeedRide = 8; // 8 km/h
+const maxSpeedRide = 45; // 45 km/h
 
 // Hàm để gửi yêu cầu lấy access token từ Strava
 function fetchAccessToken(code) {
@@ -25,7 +30,7 @@ function fetchAccessToken(code) {
 }
 
 // Hàm để lấy danh sách hoạt động từ Strava
-function fetchActivities(accessTokenCustomer) {
+function fetchActivities(accessToken) {
     const activitiesUrl = 'https://www.strava.com/api/v3/athlete/activities';
     const toDate = moment().unix(); // Ngày hiện tại, chuyển đổi thành timestamp giây
 
@@ -34,7 +39,7 @@ function fetchActivities(accessTokenCustomer) {
     };
 
     const headers = {
-        Authorization: `Bearer ${accessTokenCustomer}`
+        Authorization: `Bearer ${accessToken}`
     };
 
     return axios.get(activitiesUrl, { params: params, headers: headers });
@@ -42,7 +47,7 @@ function fetchActivities(accessTokenCustomer) {
 
 // Hàm để lấy danh sách người đăng ký
 function fetchRegistrations() {
-    return axios.get(sheetDbUrlActivities);
+    return axios.get(sheetDbUrlRegistration);
 }
 
 // Hàm để kiểm tra tính hợp lệ của hoạt động
@@ -125,11 +130,9 @@ function processAndSubmitChallengeData() {
                 "Tổng quãng đường": athlete.totalDistance.toFixed(2),
                 "Tổng số ngày có hoạt động": athlete.totalDays,
                 "Ngày 1": athlete.startDate ? athlete.startDate.format('DD/MM') : '',
-                "Ngày kết thúc": athlete.endDate ? athlete.endDate.format('DD/MM') : '',
+                "Ngày n": athlete.endDate ? athlete.endDate.format('DD/MM') : '',
                 ...athlete.distancesByDate
             }));
-
-            console.log({ challengeData });
 
             return axios.post(sheetDbUrlChallenge, { data: challengeData });
         })
@@ -205,60 +208,11 @@ function submitForm(event) {
         .then((response) => {
             console.log("Dữ liệu đã được gửi thành công:", response.data);
             alert("Đăng ký thành công!");
-
-            return fetchActivities(accessTokenCustomer);
-        })
-        .then((activityResponse) => {
-            const activities = activityResponse.data;
-            console.log("Activities:", activities);
-
-            // Hàm để gửi dữ liệu hoạt động lên SheetDB với độ trễ
-            function sendActivityData(activity, delay) {
-                return new Promise((resolve) => {
-                    setTimeout(() => {
-                        const activityData = {
-                            "Mã Người Tham gia": athleteId,
-                            "Họ và Tên": fullName,
-                            Sport: activity.type,
-                            "Start Time": moment(activity.start_date_local).format("HH:mm"),
-                            Date: moment(activity.start_date_local).format("DD/MM/YYYY"),
-                            "Title/ Name": activity.name,
-                            Distance: (activity.distance / 1000).toFixed(2),
-                            "Moving Time": moment.utc(activity.moving_time * 1000).format("HH:mm"),
-                            "Average Pace": activity.type === "Run" || activity.type === "Walk" ? moment.utc(activity.moving_time / activity.distance * 1000).format("mm:ss") : "",
-                            "Average Speed": activity.type === "Ride" ? (activity.average_speed * 3.6).toFixed(2) : "",
-                            "Elapsed time": moment.utc(activity.elapsed_time * 1000).format("HH:mm"),
-                            "Average Elapsed Pace": activity.type === "Run" || activity.type === "Walk" ? moment.utc(activity.elapsed_time / activity.distance * 1000).format("mm:ss") : "",
-                            "Average Elapsed Speed": activity.type === "Ride" ? (activity.elapsed_time * 3.6).toFixed(2) : "",
-                            "Fastest Split Pace": activity.type === "Run" || activity.type === "Walk" ? moment.utc(activity.best_efforts?.[0]?.elapsed_time * 1000).format("mm:ss") : "",
-                            "Max Speed": activity.type === "Ride" ? (activity.max_speed * 3.6).toFixed(2) : "",
-                            Manual: activity.manual,
-                            Tagged: activity.from_accepted_tag,
-                        };
-
-                        console.log("Sending activity data to SheetDB:", activityData);
-                        axios.post(sheetDbUrlActivities, { data: [activityData] })
-                            .then(resolve)
-                            .catch((error) => {
-                                console.error("Lỗi khi gửi dữ liệu hoạt động:", error);
-                                resolve(); // Tiếp tục thực hiện các yêu cầu tiếp theo dù có lỗi
-                            });
-                    }, delay);
-                });
-            }
-
-            const activityPromises = activities.map((activity, index) => {
-                return sendActivityData(activity, index * 1000); // Gửi mỗi yêu cầu với độ trễ 1 giây
-            });
-
-            return Promise.all(activityPromises);
-        })
-        .then((results) => {
-            console.log("Tất cả dữ liệu hoạt động đã được gửi thành công:", results);
+            processAndSubmitChallengeData();
         })
         .catch((error) => {
-            console.error("Lỗi khi xử lý:", error);
-            alert("Có lỗi xảy ra, vui lòng thử lại.");
+            console.error("Lỗi khi gửi dữ liệu:", error);
+            alert("Đăng ký thất bại, vui lòng thử lại.");
         });
 }
 
