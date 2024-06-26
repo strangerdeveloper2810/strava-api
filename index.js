@@ -15,6 +15,7 @@ const fastestSplitPaceWalkRun = moment.duration(3.5, 'minutes').asSeconds(); // 
 const minSpeedRide = 8; // 8 km/h
 const maxSpeedRide = 45; // 45 km/h
 
+let athleteData = {};
 // Hàm để gửi yêu cầu lấy access token từ Strava
 function fetchAccessToken(code) {
     const tokenUrl = 'https://www.strava.com/oauth/token';
