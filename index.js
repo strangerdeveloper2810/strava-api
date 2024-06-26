@@ -103,8 +103,16 @@ const scope = 'read,activity:read_all';
 const redirectUri = 'https://strava-api-dun.vercel.app/';
 const sheetDbUrlRegistration = 'https://sheetdb.io/api/v1/6q0812gcbeszf';
 const sheetDbUrlActivities = 'https://sheetdb.io/api/v1/2iethxwsa7ic3';
-// const accessTokenCustomer = "67fd346dbea5506a131cf10910a706553b3d5d23";
-// const athleteIdCustomer = "48680729";
+const sheetDbUrlValidActivities = 'https://sheetdb.io/api/v1/4cqqxhz0safle';
+
+// Các điều kiện hợp lệ
+const minDistanceWalkRun = 2; // Đơn vị km
+const minDistanceRide = 7; // Đơn vị km
+const minPaceWalkRun = moment.duration(15, 'minutes').asSeconds(); // 15:00 min/km
+const maxPaceWalkRun = moment.duration(4, 'minutes').asSeconds(); // 4:00 min/km
+const fastestSplitPaceWalkRun = moment.duration(3.5, 'minutes').asSeconds(); // 3:30 min/km
+const minSpeedRide = 8; // 8 km/h
+const maxSpeedRide = 45; // 45 km/h
 
 // Hàm để gửi yêu cầu lấy access token từ Strava
 function fetchAccessToken(code) {
@@ -160,12 +168,40 @@ if (code) {
             statusMessage.id = 'statusMessage';
             statusMessage.textContent = 'Authorize thành công!';
             statusMessage.style.display = 'block';
+            statusMessage.style.color = "green";
             document.body.appendChild(statusMessage);
         })
         .catch(error => {
             console.error('Error fetching access token:', error.response.data);
             alert('Lỗi xảy ra khi lấy accessToken từ Strava.');
         });
+}
+
+// Hàm để kiểm tra tính hợp lệ của hoạt động
+function isValidActivity(activity) {
+    const distance = activity.distance / 1000; // Chuyển đổi sang km
+    const elapsedPace = activity.elapsed_time / activity.distance; // Tính pace theo giây/m
+    const fastestSplitPace = activity.best_efforts?.[0]?.elapsed_time / activity.distance; // Tính fastest split pace theo giây/m
+
+    if (activity.manual || activity.from_accepted_tag) {
+        return false;
+    }
+
+    switch (activity.type) {
+        case 'Run':
+        case 'Walk':
+            return distance >= minDistanceWalkRun &&
+                elapsedPace >= minPaceWalkRun &&
+                elapsedPace <= maxPaceWalkRun &&
+                fastestSplitPace <= fastestSplitPaceWalkRun;
+        case 'Ride':
+            const averageSpeed = activity.average_speed * 3.6; // Chuyển đổi sang km/h
+            return distance >= minDistanceRide &&
+                averageSpeed >= minSpeedRide &&
+                averageSpeed <= maxSpeedRide;
+        default:
+            return false;
+    }
 }
 
 // Hàm để submit form
@@ -231,13 +267,27 @@ function submitForm(event) {
                             Tagged: activity.from_accepted_tag,
                         };
 
-                        console.log("Sending activity data to SheetDB:", activityData);
+                        // Gửi dữ liệu hoạt động đến sheet hoạt động
                         axios.post(sheetDbUrlActivities, { data: [activityData] })
-                            .then(resolve)
+                            .then(() => {
+                                console.log("Gửi dữ liệu hoạt động thành công:", activityData);
+                            })
                             .catch((error) => {
                                 console.error("Lỗi khi gửi dữ liệu hoạt động:", error);
-                                resolve(); // Tiếp tục thực hiện các yêu cầu tiếp theo dù có lỗi
                             });
+
+                        // Nếu hoạt động hợp lệ, gửi dữ liệu đến sheet hoạt động hợp lệ
+                        if (isValidActivity(activity)) {
+                            axios.post(sheetDbUrlValidActivities, { data: [activityData] })
+                                .then(() => {
+                                    console.log("Gửi dữ liệu hoạt động hợp lệ thành công:", activityData);
+                                })
+                                .catch((error) => {
+                                    console.error("Lỗi khi gửi dữ liệu hoạt động hợp lệ:", error);
+                                });
+                        }
+
+                        resolve();
                     }, delay);
                 });
             }
@@ -257,4 +307,4 @@ function submitForm(event) {
         });
 }
 
-document.getElementById("registrationForm").addEventListener("submit", submitForm);
+document.getElementById('registrationForm').addEventListener("submit", submitForm);
