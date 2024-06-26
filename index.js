@@ -77,18 +77,19 @@ function processAndSubmitChallengeData() {
     fetchRegistrations()
         .then(response => {
             const registrations = response.data;
-            const athleteData = {};
 
             registrations.forEach(reg => {
                 const athleteId = reg['Mã Người Tham gia'];
-                athleteData[athleteId] = {
-                    fullName: reg['Họ và Tên'],
-                    totalDistance: 0,
-                    totalDays: 0,
-                    startDate: null,
-                    endDate: null,
-                    distancesByDate: {}
-                };
+                if (!athleteData[athleteId]) {
+                    athleteData[athleteId] = {
+                        fullName: reg['Họ và Tên'],
+                        totalDistance: 0,
+                        totalDays: 0,
+                        startDate: null,
+                        endDate: null,
+                        distancesByDate: {}
+                    };
+                }
             });
 
             const accessToken = localStorage.getItem("stravaAccessToken");
@@ -140,7 +141,6 @@ function processAndSubmitChallengeData() {
             console.error("Lỗi khi xử lý dữ liệu Challenge:", error);
         });
 }
-
 // Sự kiện khi người dùng nhấn vào nút "Đăng nhập Strava"
 document.getElementById('authorizeBtn').addEventListener('click', () => {
     const stravaAuthorizeUrl = `https://www.strava.com/oauth/authorize?client_id=${clientId}&redirect_uri=${encodeURIComponent(redirectUri)}&response_type=code&scope=${scope}`;
