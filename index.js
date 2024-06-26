@@ -255,6 +255,9 @@ function submitForm(event) {
         })
         .then((results) => {
             console.log("Tất cả dữ liệu hoạt động đã được gửi thành công:", results);
+
+            // Sau khi gửi xong dữ liệu hoạt động, gọi hàm xử lý và ghi dữ liệu vào sheet Challenge
+            processAndSubmitChallengeData();
         })
         .catch((error) => {
             console.error("Lỗi khi xử lý:", error);
