@@ -5,8 +5,6 @@ const redirectUri = 'https://strava-api-dun.vercel.app/';
 const sheetDbUrlRegistration = 'https://sheetdb.io/api/v1/6q0812gcbeszf';
 const sheetDbUrlActivities = 'https://sheetdb.io/api/v1/2iethxwsa7ic3';
 const sheetDbUrlChallenge = 'https://sheetdb.io/api/v1/ge9q0s695kxj2';
-const accessTokenCustomer = "359b0711f3da2341df51b6de507f6ea5762bb4b9";
-const athleteIdCustomer = "48680729";
 
 const athleteData = {}
 
@@ -25,7 +23,7 @@ function fetchAccessToken(code) {
 }
 
 // Hàm để lấy danh sách hoạt động từ Strava
-function fetchActivities(accessTokenCustomer) {
+function fetchActivities(accessToken) {
     const activitiesUrl = 'https://www.strava.com/api/v3/athlete/activities';
     const toDate = moment().unix(); // Ngày hiện tại, chuyển đổi thành timestamp giây
 
@@ -34,7 +32,7 @@ function fetchActivities(accessTokenCustomer) {
     };
 
     const headers = {
-        Authorization: `Bearer ${accessTokenCustomer}`
+        Authorization: `Bearer ${accessToken}`
     };
 
     return axios.get(activitiesUrl, { params: params, headers: headers });
@@ -206,7 +204,7 @@ function submitForm(event) {
             console.log("Dữ liệu đã được gửi thành công:", response.data);
             alert("Đăng ký thành công!");
 
-            return fetchActivities(accessTokenCustomer);
+            return fetchActivities(accessToken);
         })
         .then((activityResponse) => {
             const activities = activityResponse.data;
@@ -220,11 +218,11 @@ function submitForm(event) {
                             "Mã Người Tham gia": athleteId,
                             "Họ và Tên": fullName,
                             Sport: activity.type,
-                            "Start Time": moment(activity.start_date_local).format("HH:mm"),
+                            "Start Time": moment(activity.start_date_local).format("DD/MM/YYYY"),
                             Date: moment(activity.start_date_local).format("DD/MM/YYYY"),
                             "Title/ Name": activity.name,
                             Distance: (activity.distance / 1000).toFixed(2),
-                            "Moving Time": moment.utc(activity.moving_time * 1000).format("HH:mm"),
+                            "Moving Time": moment.utc(activity.moving_time).format("HH:mm"),
                             "Average Pace": activity.type === "Run" || activity.type === "Walk" ? moment.utc(activity.moving_time / activity.distance * 1000).format("mm:ss") : "",
                             "Average Speed": activity.type === "Ride" ? (activity.average_speed * 3.6).toFixed(2) : "",
                             "Elapsed time": moment.utc(activity.elapsed_time * 1000).format("HH:mm"),
