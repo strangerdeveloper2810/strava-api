@@ -152,10 +152,12 @@ if (code) {
     fetchAccessToken(code)
         .then(response => {
             const accessToken = response.data.access_token;
+            const refreshToken = response.data.refresh_token;
             const athleteId = response.data.athlete.id;
             const fullName = `${response.data.athlete.firstname} ${response.data.athlete.lastname}`;
 
             localStorage.setItem('stravaAccessToken', accessToken);
+            localStorage.setItem('refreshToken', refreshToken);
             localStorage.setItem('athleteId', athleteId);
             localStorage.setItem('fullName', fullName);
 
@@ -180,6 +182,7 @@ function submitForm(event) {
     const gender = formData.get("gender");
     const dob = formData.get("dob");
     const accessToken = localStorage.getItem("stravaAccessToken");
+    const refreshToken = localStorage.getItem("refreshToken");
     const athleteId = localStorage.getItem("athleteId");
     const timestamp = new Date().toLocaleString("vi-VN", {
         timeZone: "Asia/Ho_Chi_Minh",
@@ -193,6 +196,7 @@ function submitForm(event) {
                 "Giới tính": gender,
                 "Ngày tháng năm sinh": dob,
                 "Access Token": accessToken,
+                "RefreshToken": refreshToken,
                 Timestamp: timestamp,
             },
         ],
