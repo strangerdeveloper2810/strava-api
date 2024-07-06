@@ -266,6 +266,7 @@ function processAndSubmitChallengeData() {
             });
 
             const challengeData = Object.values(athleteData).map(athlete => {
+                console.log({ athlete });
                 const dateColumns = {};
                 Object.keys(athlete.distancesByDate).forEach((date, index) => {
                     dateColumns[`Ngày ${index + 1}`] = date;
