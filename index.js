@@ -177,6 +177,17 @@ function fetchRegistrations() {
 }
 
 
+// Các tiêu chí hợp lệ
+const criteria = {
+    minDistanceWalkRun: 2, // km
+    minDistanceRide: 7, // km
+    minPaceWalkRun: 15 * 60, // seconds per km
+    maxPaceWalkRun: 4 * 60, // seconds per km
+    fastestSplitPaceWalkRun: 3.5 * 60, // seconds per km
+    minSpeedRide: 8, // km/h
+    maxSpeedRide: 45 // km/h
+};
+
 // Hàm để kiểm tra tính hợp lệ của hoạt động
 function isValidActivity(activity) {
     const distance = activity.distance / 1000; // Chuyển đổi sang km
@@ -190,15 +201,15 @@ function isValidActivity(activity) {
     switch (activity.type) {
         case 'Run':
         case 'Walk':
-            return distance >= minDistanceWalkRun &&
-                elapsedPace >= minPaceWalkRun &&
-                elapsedPace <= maxPaceWalkRun &&
-                fastestSplitPace <= fastestSplitPaceWalkRun;
+            return distance >= criteria.minDistanceWalkRun &&
+                elapsedPace >= criteria.minPaceWalkRun &&
+                elapsedPace <= criteria.maxPaceWalkRun &&
+                fastestSplitPace <= criteria.fastestSplitPaceWalkRun;
         case 'Ride':
             const averageSpeed = activity.average_speed * 3.6; // Chuyển đổi sang km/h
-            return distance >= minDistanceRide &&
-                averageSpeed >= minSpeedRide &&
-                averageSpeed <= maxSpeedRide;
+            return distance >= criteria.minDistanceRide &&
+                averageSpeed >= criteria.minSpeedRide &&
+                averageSpeed <= criteria.maxSpeedRide;
         default:
             return false;
     }
