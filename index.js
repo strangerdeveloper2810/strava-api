@@ -196,7 +196,7 @@ function submitForm(event) {
                 "Giới tính": gender,
                 "Ngày tháng năm sinh": dob,
                 "Access Token": accessToken,
-                "RefreshToken": refreshToken,
+                "Refresh Token": refreshToken,
                 Timestamp: timestamp,
             },
         ],
