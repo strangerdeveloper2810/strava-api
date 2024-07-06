@@ -6,11 +6,11 @@ const sheetDbUrlRegistration = 'https://sheetdb.io/api/v1/6q0812gcbeszf';
 const sheetDbUrlActivities = 'https://sheetdb.io/api/v1/2iethxwsa7ic3';
 const sheetDbUrlChallenge = 'https://sheetdb.io/api/v1/ge9q0s695kxj2';
 
-const athleteData = {}
+const athleteData = {};
 
 // Hàm để gửi yêu cầu lấy access token từ Strava
 function fetchAccessToken(code) {
-    const tokenUrl = 'https://www.strava.com/oauth/token';
+    const tokenUrl = 'https://www.strava.com/api/v3/oauth/token';
     const params = {
         client_id: clientId,
         client_secret: clientSecret,
@@ -22,8 +22,34 @@ function fetchAccessToken(code) {
     return axios.post(tokenUrl, null, { params: params });
 }
 
+// Hàm để làm mới access token từ Strava
+function refreshAccessToken(refreshToken) {
+    const tokenUrl = 'https://www.strava.com/api/v3/oauth/token';
+    const params = {
+        client_id: clientId,
+        client_secret: clientSecret,
+        refresh_token: refreshToken,
+        grant_type: 'refresh_token'
+    };
+
+    return axios.post(tokenUrl, null, { params: params })
+        .then(response => {
+            const newAccessToken = response.data.access_token;
+            const newRefreshToken = response.data.refresh_token;
+            localStorage.setItem('stravaAccessToken', newAccessToken);
+            localStorage.setItem('refreshToken', newRefreshToken);
+            return newAccessToken;
+        })
+        .catch(error => {
+            console.error('Error refreshing access token:', error.response.data);
+            throw new Error('Could not refresh access token');
+        });
+}
+
 // Hàm để lấy danh sách hoạt động từ Strava
-function fetchActivities(accessToken) {
+function fetchActivities() {
+    let accessToken = localStorage.getItem('stravaAccessToken');
+    const refreshToken = localStorage.getItem('refreshToken');
     const activitiesUrl = 'https://www.strava.com/api/v3/athlete/activities';
     const toDate = moment().unix(); // Ngày hiện tại, chuyển đổi thành timestamp giây
 
@@ -35,7 +61,20 @@ function fetchActivities(accessToken) {
         Authorization: `Bearer ${accessToken}`
     };
 
-    return axios.get(activitiesUrl, { params: params, headers: headers });
+    return axios.get(activitiesUrl, { params: params, headers: headers })
+        .catch(error => {
+            if (error.response.status === 401) {
+                // Token hết hạn, làm mới token và thử lại
+                return refreshAccessToken(refreshToken).then(newAccessToken => {
+                    const newHeaders = {
+                        Authorization: `Bearer ${newAccessToken}`
+                    };
+                    return axios.get(activitiesUrl, { params: params, headers: newHeaders });
+                });
+            } else {
+                throw error;
+            }
+        });
 }
 
 // Hàm để lấy danh sách người đăng ký
@@ -43,107 +82,7 @@ function fetchRegistrations() {
     return axios.get(sheetDbUrlActivities);
 }
 
-// Hàm để kiểm tra tính hợp lệ của hoạt động
-function isValidActivity(activity) {
-    const distance = activity.distance / 1000; // Chuyển đổi sang km
-    const elapsedPace = activity.elapsed_time / activity.distance; // Tính pace theo giây/m
-    const fastestSplitPace = activity.best_efforts?.[0]?.elapsed_time / activity.distance; // Tính fastest split pace theo giây/m
-
-    if (activity.manual || activity.from_accepted_tag) {
-        return false;
-    }
-
-    switch (activity.type) {
-        case 'Run':
-        case 'Walk':
-            return distance >= minDistanceWalkRun &&
-                elapsedPace >= minPaceWalkRun &&
-                elapsedPace <= maxPaceWalkRun &&
-                fastestSplitPace <= fastestSplitPaceWalkRun;
-        case 'Ride':
-            const averageSpeed = activity.average_speed * 3.6; // Chuyển đổi sang km/h
-            return distance >= minDistanceRide &&
-                averageSpeed >= minSpeedRide &&
-                averageSpeed <= maxSpeedRide;
-        default:
-            return false;
-    }
-}
-
-// Hàm để xử lý dữ liệu và ghi vào bảng Challenge
-function processAndSubmitChallengeData() {
-    fetchRegistrations()
-        .then(response => {
-            const registrations = response.data;
-
-            registrations.forEach(reg => {
-                const athleteId = reg['Mã Người Tham gia'];
-                if (!athleteData[athleteId]) {
-                    athleteData[athleteId] = {
-                        fullName: reg['Họ và Tên'],
-                        totalDistance: 0,
-                        totalDays: 0,
-                        startDate: null,
-                        endDate: null,
-                        distancesByDate: {}
-                    };
-                }
-            });
-
-            const accessToken = localStorage.getItem("stravaAccessToken");
-            return fetchActivities(accessToken);
-        })
-        .then(activityResponse => {
-            const activities = activityResponse.data;
-
-            activities.forEach(activity => {
-                if (!isValidActivity(activity)) return;
-
-                const athleteId = localStorage.getItem("athleteId");
-                const activityDate = moment(activity.start_date_local).format('DD/MM');
-                const distance = activity.type === 'Ride' ? (activity.distance / 1000) / 4 : activity.distance / 1000;
-
-                if (!athleteData[athleteId].distancesByDate[activityDate]) {
-                    athleteData[athleteId].distancesByDate[activityDate] = 0;
-                    athleteData[athleteId].totalDays++;
-                }
-
-                athleteData[athleteId].distancesByDate[activityDate] += distance;
-                athleteData[athleteId].totalDistance += distance;
-
-                if (!athleteData[athleteId].startDate || moment(activity.start_date_local).isBefore(athleteData[athleteId].startDate)) {
-                    athleteData[athleteId].startDate = moment(activity.start_date_local);
-                }
-                if (!athleteData[athleteId].endDate || moment(activity.start_date_local).isAfter(athleteData[athleteId].endDate)) {
-                    athleteData[athleteId].endDate = moment(activity.start_date_local);
-                }
-            });
-
-            const challengeData = Object.values(athleteData).map(athlete => ({
-                "Họ và Tên": athlete.fullName,
-                "Tổng quãng đường": athlete.totalDistance.toFixed(2),
-                "Tổng số ngày có hoạt động": athlete.totalDays,
-                "Ngày 1": athlete.startDate ? athlete.startDate.format('DD/MM') : '',
-                "Ngày kết thúc": athlete.endDate ? athlete.endDate.format('DD/MM') : '',
-                ...athlete.distancesByDate
-            }));
-
-            console.log({ challengeData });
-
-            return axios.post(sheetDbUrlChallenge, { data: challengeData });
-        })
-        .then(response => {
-            console.log("Ghi dữ liệu vào Challenge thành công:", response.data);
-        })
-        .catch(error => {
-            console.error("Lỗi khi xử lý dữ liệu Challenge:", error);
-        });
-}
-// Sự kiện khi người dùng nhấn vào nút "Đăng nhập Strava"
-document.getElementById('authorizeBtn').addEventListener('click', () => {
-    const stravaAuthorizeUrl = `https://www.strava.com/oauth/authorize?client_id=${clientId}&redirect_uri=${encodeURIComponent(redirectUri)}&response_type=code&scope=${scope}`;
-    window.location.href = stravaAuthorizeUrl;
-});
+// Các hàm khác không thay đổi...
 
 // Kiểm tra nếu có mã code trong URL
 const urlParams = new URLSearchParams(window.location.search);
@@ -208,7 +147,7 @@ function submitForm(event) {
             console.log("Dữ liệu đã được gửi thành công:", response.data);
             alert("Đăng ký thành công!");
 
-            return fetchActivities(accessToken);
+            return fetchActivities();
         })
         .then((activityResponse) => {
             const activities = activityResponse.data;
