@@ -236,7 +236,8 @@ function processAndSubmitChallengeData() {
             });
 
             const accessToken = localStorage.getItem("stravaAccessToken");
-            return fetchActivities(accessTokenCustomer);
+            return fetchActivities(accessTokenCustomer); // Sử dụng accessToken đúng
+
         })
         .then(activityResponse => {
             const activities = activityResponse.data;
@@ -264,14 +265,22 @@ function processAndSubmitChallengeData() {
                 }
             });
 
-            const challengeData = Object.values(athleteData).map(athlete => ({
-                "Họ và Tên": athlete.fullName,
-                "Tổng quãng đường": athlete.totalDistance.toFixed(2),
-                "Tổng số ngày có hoạt động": athlete.totalDays,
-                "Ngày 1": athlete.startDate ? athlete.startDate.format('DD/MM') : '',
-                "Ngày kết thúc": athlete.endDate ? athlete.endDate.format('DD/MM') : '',
-                ...athlete.distancesByDate
-            }));
+            const challengeData = Object.values(athleteData).map(athlete => {
+                const dateColumns = {};
+                Object.keys(athlete.distancesByDate).forEach((date, index) => {
+                    dateColumns[`Ngày ${index + 1}`] = date;
+                });
+
+                return {
+                    "Họ và Tên": athlete.fullName,
+                    "Tổng quãng đường": athlete.totalDistance.toFixed(2),
+                    "Tổng số ngày có hoạt động": athlete.totalDays,
+                    "Ngày 1": athlete.startDate ? athlete.startDate.format('DD/MM') : '',
+                    "Ngày kết thúc": athlete.endDate ? athlete.endDate.format('DD/MM') : '',
+                    ...athlete.distancesByDate,
+                    ...dateColumns
+                };
+            });
 
             console.log({ challengeData });
 
