@@ -10,7 +10,7 @@ const athleteData = {};
 
 // Hàm để gửi yêu cầu lấy access token từ Strava
 function fetchAccessToken(code) {
-    const tokenUrl = 'https://www.strava.com/api/v3/oauth/token';
+    const tokenUrl = 'https://www.strava.com/oauth/token';
     const params = {
         client_id: clientId,
         client_secret: clientSecret,
@@ -24,7 +24,7 @@ function fetchAccessToken(code) {
 
 // Hàm để làm mới access token từ Strava
 function refreshAccessToken(refreshToken) {
-    const tokenUrl = 'https://www.strava.com/api/v3/oauth/token';
+    const tokenUrl = 'https://www.strava.com/oauth/token';
     const params = {
         client_id: clientId,
         client_secret: clientSecret,
@@ -51,10 +51,16 @@ function fetchActivities() {
     let accessToken = localStorage.getItem('stravaAccessToken');
     const refreshToken = localStorage.getItem('refreshToken');
     const activitiesUrl = 'https://www.strava.com/api/v3/athlete/activities';
-    const toDate = moment().unix(); // Ngày hiện tại, chuyển đổi thành timestamp giây
+
+    // Lấy ngày đầu tiên và ngày cuối cùng của tháng hiện tại
+    const startOfMonth = moment().startOf('month').unix();
+    const endOfMonth = moment().endOf('month').unix();
 
     const params = {
-        before: toDate
+        after: startOfMonth,
+        before: endOfMonth,
+        page: 1,
+        per_page: 200 // Số hoạt động trên mỗi trang, có thể thay đổi tùy nhu cầu
     };
 
     const headers = {
