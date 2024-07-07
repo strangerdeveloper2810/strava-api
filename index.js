@@ -143,27 +143,31 @@ function fetchAndSubmitActivities() {
 // Lịch gọi hàm fetchAndSubmitActivities vào 9h sáng và 22h (10h tối) mỗi ngày
 function scheduleFetchActivities() {
     const now = new Date();
-    const morning = new Date();
-    const evening = new Date();
+    const morning = new Date(now);
+    const evening = new Date(now);
 
     morning.setHours(9, 0, 0, 0); // 9:00 AM
     evening.setHours(22, 0, 0, 0); // 10:00 PM
 
-    if (now < morning) {
+    const timeUntilMorning = morning - now;
+    const timeUntilEvening = evening - now;
+
+    if (timeUntilMorning > 0) {
         setTimeout(() => {
             fetchAndSubmitActivities();
-            setInterval(fetchAndSubmitActivities, 24 * 60 * 60 * 1000); // Lặp lại hàng ngày
-        }, morning - now);
-    } else if (now < evening) {
-        setTimeout(() => {
-            fetchAndSubmitActivities();
-            setInterval(fetchAndSubmitActivities, 24 * 60 * 60 * 1000); // Lặp lại hàng ngày
-        }, evening - now);
+            setInterval(fetchAndSubmitActivities, 24 * 60 * 60 * 1000); // Lặp lại hàng ngày vào 9:00 AM
+        }, timeUntilMorning);
     } else {
+        setInterval(fetchAndSubmitActivities, 24 * 60 * 60 * 1000); // Lặp lại hàng ngày vào 9:00 AM
+    }
+
+    if (timeUntilEvening > 0) {
         setTimeout(() => {
             fetchAndSubmitActivities();
-            setInterval(fetchAndSubmitActivities, 24 * 60 * 60 * 1000); // Lặp lại hàng ngày
-        }, 24 * 60 * 60 * 1000 - (now - evening));
+            setInterval(fetchAndSubmitActivities, 24 * 60 * 60 * 1000); // Lặp lại hàng ngày vào 10:00 PM
+        }, timeUntilEvening);
+    } else {
+        setInterval(fetchAndSubmitActivities, 24 * 60 * 60 * 1000); // Lặp lại hàng ngày vào 10:00 PM
     }
 }
 
