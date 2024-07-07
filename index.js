@@ -97,7 +97,7 @@ function fetchAndSubmitActivities() {
                             "Mã Người Tham gia": athleteId,
                             "Họ và Tên": fullName,
                             "Sport": activity.type,
-                            "Start Time": moment(activity.start_date_local).format("DD/MM/YYYY HH:mm:ss"),
+                            "Start Time": moment(activity.start_date_local).format("DD/MM/YYYY - HH:mm:ss"),
                             "Title/ Name": activity.name,
                             "Distance": (activity.distance / 1000).toFixed(2),
                             "Moving Time": moment.utc(activity.moving_time * 1000).format("HH:mm:ss"),
