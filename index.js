@@ -5,7 +5,7 @@ const redirectUri = 'https://strava-api-dun.vercel.app/';
 const sheetDbUrlRegistration = 'https://sheetdb.io/api/v1/6q0812gcbeszf';
 const sheetDbUrlActivities = 'https://sheetdb.io/api/v1/2iethxwsa7ic3';
 const sheetDbUrlChallenge = 'https://sheetdb.io/api/v1/ge9q0s695kxj2';
-const accessTokenCustomer = "ad4cd6996016b163b498de40d517323a0919193b"
+const accessTokenCustomer = "ba6d240a8bf220de82be278ac5ad181ce1e7eef9"
 const athleteData = {};
 
 // Hàm để gửi yêu cầu lấy access token từ Strava
@@ -377,16 +377,15 @@ function submitForm(event) {
                             "Mã Người Tham gia": athleteId,
                             "Họ và Tên": fullName,
                             "Sport": activity.type,
-                            "Start Time": moment(activity.start_date_local).format("DD/MM/YYYY"),
-                            "Date": moment(activity.start_date_local).format("DD/MM/YYYY"),
+                            "Start Time": moment(activity.start_date_local).format("DD/MM/YYYY HH:mm:ss"),
                             "Title/ Name": activity.name,
-                            Distance: (activity.distance / 1000).toFixed(2),
-                            "Moving Time": moment.utc(activity.moving_time).format("HH:mm"),
-                            "Average Pace": activity.type === "Run" || activity.type === "Walk" ? moment.utc(activity.moving_time / activity.distance * 1000).format("mm:ss") : "",
+                            "Distance": (activity.distance / 1000).toFixed(2),
+                            "Moving Time": moment.utc(activity.moving_time * 1000).format("HH:mm:ss"),
+                            "Average Pace": activity.type === "Run" || activity.type === "Walk" ? moment.utc((1000 / activity.average_speed) * 1000).format("mm:ss") : "",
                             "Average Speed": activity.type === "Ride" ? (activity.average_speed * 3.6).toFixed(2) : "",
-                            "Elapsed time": moment.utc(activity.elapsed_time * 1000).format("HH:mm"),
-                            "Average Elapsed Pace": activity.type === "Run" || activity.type === "Walk" ? moment.utc(activity.elapsed_time / activity.distance * 1000).format("mm:ss") : "",
-                            "Average Elapsed Speed": activity.type === "Ride" ? (activity.elapsed_time * 3.6).toFixed(2) : "",
+                            "Elapsed time": moment.utc(activity.elapsed_time * 1000).format("HH:mm:ss"),
+                            "Average Elapsed Pace": activity.type === "Run" || activity.type === "Walk" ? moment.utc((activity.elapsed_time / activity.distance) * 1000).format("mm:ss") : "",
+                            "Average Elapsed Speed": activity.type === "Ride" ? ((activity.distance / 1000) / (activity.elapsed_time / 3600)).toFixed(2) : "",
                             "Fastest Split Pace": activity.type === "Run" || activity.type === "Walk" ? moment.utc(activity.best_efforts?.[0]?.elapsed_time * 1000).format("mm:ss") : "",
                             "Max Speed": activity.type === "Ride" ? (activity.max_speed * 3.6).toFixed(2) : "",
                             "Manual": activity.manual,
