@@ -53,7 +53,7 @@ function fetchActivities() {
     const activitiesUrl = 'https://www.strava.com/api/v3/athlete/activities';
 
     // Lấy ngày đầu tiên và ngày cuối cùng của tháng hiện tại
-    const startOfMonth = moment().startOf('month').unix();
+    const startOfMonth = moment().startOf('year').add(5, 'months').startOf('month').unix();
     const endOfMonth = moment().endOf('month').unix();
 
     const params = {
