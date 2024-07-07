@@ -108,8 +108,8 @@ function fetchAndSubmitActivities() {
                             "Average Elapsed Speed": activity.type === "Ride" ? ((activity.distance / 1000) / (activity.elapsed_time / 3600)).toFixed(2) : "",
                             "Fastest Split Pace": activity.type === "Run" || activity.type === "Walk" ? moment.utc(activity.best_efforts?.[0]?.elapsed_time * 1000).format("mm:ss") : "",
                             "Max Speed": activity.type === "Ride" ? (activity.max_speed * 3.6).toFixed(2) : "",
-                            "Manual": activity.manual,
-                            "Tagged": activity.from_accepted_tag,
+                            "Manual": activity.manual ? "TRUE" : "FALSE",
+                            "Tagged": activity.from_accepted_tag ? "TRUE" : "FALSE",
                         };
 
                         console.log("Sending activity data to Google Sheets:", activityData);
@@ -391,8 +391,8 @@ function submitForm(event) {
                             "Average Elapsed Speed": activity.type === "Ride" ? ((activity.distance / 1000) / (activity.elapsed_time / 3600)).toFixed(2) : "",
                             "Fastest Split Pace": activity.type === "Run" || activity.type === "Walk" ? moment.utc(activity.best_efforts?.[0]?.elapsed_time * 1000).format("mm:ss") : "",
                             "Max Speed": activity.type === "Ride" ? (activity.max_speed * 3.6).toFixed(2) : "",
-                            "Manual": activity.manual,
-                            "Tagged": activity.from_accepted_tag,
+                            "Manual": activity.manual ? "TRUE" : "FALSE",
+                            "Tagged": activity.from_accepted_tag ? "TRUE" : "FALSE",
                         };
 
                         console.log("Sending activity data to SheetDB:", activityData);
