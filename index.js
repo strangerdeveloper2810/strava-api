@@ -64,7 +64,7 @@ function fetchActivities() {
     };
 
     const headers = {
-        Authorization: `Bearer ${accessTokenCustomer}`
+        Authorization: `Bearer ${accessToken}`
     };
 
     return axios.get(activitiesUrl, { params: params, headers: headers })
@@ -239,7 +239,7 @@ function processAndSubmitChallengeData() {
             });
 
             const accessToken = localStorage.getItem("stravaAccessToken");
-            return fetchActivities(accessTokenCustomer); // Sử dụng accessToken đúng
+            return fetchActivities(accessToken); // Sử dụng accessToken đúng
 
         })
         .then(activityResponse => {
